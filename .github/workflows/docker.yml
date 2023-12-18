@@ -3,7 +3,7 @@ name: "Build Docker Image"
 on:
   push:
     tags:
-      - app/v*.*.*
+      - app/v*
 
 jobs:
   docker:
@@ -31,6 +31,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_IMAGE_NAME }}
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v5
@@ -38,7 +44,7 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: tobyxdd/hysteria:latest,tobyxdd/hysteria:v2,tobyxdd/hysteria:${{ steps.get_version.outputs.version }}
+          tags: ${{ steps.get_version.outputs.version }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
