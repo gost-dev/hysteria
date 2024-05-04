@@ -239,6 +239,8 @@ def cmd_build(pprof=False, release=False, race=False):
         cmd = [
             "go",
             "build",
+            "-mod",
+            "vendor",
             "-o",
             os.path.join(BUILD_DIR, out_name),
             "-ldflags",
@@ -254,6 +256,7 @@ def cmd_build(pprof=False, release=False, race=False):
         cmd.append(APP_SRC_DIR)
 
         try:
+            print('command line args:',cmd)
             subprocess.check_call(cmd, env=env)
         except Exception:
             print("Failed to build for %s/%s" % (os_name, arch))
