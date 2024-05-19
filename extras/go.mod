@@ -1,9 +1,9 @@
-module github.com/apernet/hysteria/extras
+module github.com/apernet/hysteria/extras/v2
 
 go 1.21
 
 require (
-	github.com/apernet/hysteria/core v0.0.0-00010101000000-000000000000
+	github.com/apernet/hysteria/core/v2 v2.0.0-00010101000000-000000000000
 	github.com/babolivier/go-doh-client v0.0.0-20201028162107-a76cff4cb8b6
 	github.com/hashicorp/golang-lru/v2 v2.0.5
 	github.com/miekg/dns v1.1.55
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/apernet/quic-go v0.43.1-0.20240429030958-51a0843014d6 // indirect
+	github.com/apernet/quic-go v0.43.1-0.20240515053213-5e9e635fd9f0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38 // indirect
@@ -34,4 +34,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/apernet/hysteria/core => ../core
+replace github.com/apernet/hysteria/core/v2 => ../core
