@@ -1,9 +1,10 @@
 name: "Create release tags for nested modules"
 
 on:
-  push:
-    tags:
-      - app/v*.*.*
+  # push:
+  #   tags:
+  #     - app/v*.*.*
+  workflow_dispatch:
 
 permissions:
   contents: write
