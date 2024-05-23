@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/types/objectpath"
+	"golang.org/x/tools/internal/aliases"
 	"golang.org/x/tools/internal/tokeninternal"
-	"golang.org/x/tools/internal/typeparams"
 )
 
 // IExportShallow encodes "shallow" export data for the specified package.
@@ -46,7 +46,7 @@ func IExportShallow(fset *token.FileSet, pkg *types.Package, reportf ReportFunc)
 	// TODO(adonovan): use byte slices throughout, avoiding copying.
 	const bundle, shallow = false, true
 	var out bytes.Buffer
-	err := iexportCommon(&out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg}, reportf)
+	err := iexportCommon(&out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg})
 	return out.Bytes(), err
 }
 
@@ -86,16 +86,16 @@ const bundleVersion = 0
 // so that calls to IImportData can override with a provided package path.
 func IExportData(out io.Writer, fset *token.FileSet, pkg *types.Package) error {
 	const bundle, shallow = false, false
-	return iexportCommon(out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg}, nil)
+	return iexportCommon(out, fset, bundle, shallow, iexportVersion, []*types.Package{pkg})
 }
 
 // IExportBundle writes an indexed export bundle for pkgs to out.
 func IExportBundle(out io.Writer, fset *token.FileSet, pkgs []*types.Package) error {
 	const bundle, shallow = true, false
-	return iexportCommon(out, fset, bundle, shallow, iexportVersion, pkgs, nil)
+	return iexportCommon(out, fset, bundle, shallow, iexportVersion, pkgs)
 }
 
-func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, version int, pkgs []*types.Package, reportf ReportFunc) (err error) {
+func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, version int, pkgs []*types.Package) (err error) {
 	if !debug {
 		defer func() {
 			if e := recover(); e != nil {
@@ -113,7 +113,6 @@ func iexportCommon(out io.Writer, fset *token.FileSet, bundle, shallow bool, ver
 		fset:        fset,
 		version:     version,
 		shallow:     shallow,
-		reportf:     reportf,
 		allPkgs:     map[*types.Package]bool{},
 		stringIndex: map[string]uint64{},
 		declIndex:   map[types.Object]uint64{},
@@ -330,7 +329,6 @@ type iexporter struct {
 
 	shallow    bool                // don't put types from other packages in the index
 	objEncoder *objectpath.Encoder // encodes objects from other packages in shallow mode; lazily allocated
-	reportf    ReportFunc          // if non-nil, used to report bugs
 	localpkg   *types.Package      // (nil in bundle mode)
 
 	// allPkgs tracks all packages that have been referenced by
@@ -466,7 +464,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 
 	switch obj := obj.(type) {
 	case *types.Var:
-		w.tag('V')
+		w.tag(varTag)
 		w.pos(obj.Pos())
 		w.typ(obj.Type(), obj.Pkg())
 
@@ -483,10 +481,10 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		// Function.
-		if typeparams.ForSignature(sig).Len() == 0 {
-			w.tag('F')
+		if sig.TypeParams().Len() == 0 {
+			w.tag(funcTag)
 		} else {
-			w.tag('G')
+			w.tag(genericFuncTag)
 		}
 		w.pos(obj.Pos())
 		// The tparam list of the function type is the declaration of the type
@@ -496,27 +494,27 @@ func (p *iexporter) doDecl(obj types.Object) {
 		//
 		// While importing the type parameters, tparamList computes and records
 		// their export name, so that it can be later used when writing the index.
-		if tparams := typeparams.ForSignature(sig); tparams.Len() > 0 {
+		if tparams := sig.TypeParams(); tparams.Len() > 0 {
 			w.tparamList(obj.Name(), tparams, obj.Pkg())
 		}
 		w.signature(sig)
 
 	case *types.Const:
-		w.tag('C')
+		w.tag(constTag)
 		w.pos(obj.Pos())
 		w.value(obj.Type(), obj.Val())
 
 	case *types.TypeName:
 		t := obj.Type()
 
-		if tparam, ok := t.(*typeparams.TypeParam); ok {
-			w.tag('P')
+		if tparam, ok := aliases.Unalias(t).(*types.TypeParam); ok {
+			w.tag(typeParamTag)
 			w.pos(obj.Pos())
 			constraint := tparam.Constraint()
 			if p.version >= iexportVersionGo1_18 {
 				implicit := false
-				if iface, _ := constraint.(*types.Interface); iface != nil {
-					implicit = typeparams.IsImplicit(iface)
+				if iface, _ := aliases.Unalias(constraint).(*types.Interface); iface != nil {
+					implicit = iface.IsImplicit()
 				}
 				w.bool(implicit)
 			}
@@ -525,8 +523,13 @@ func (p *iexporter) doDecl(obj types.Object) {
 		}
 
 		if obj.IsAlias() {
-			w.tag('A')
+			w.tag(aliasTag)
 			w.pos(obj.Pos())
+			if alias, ok := t.(*aliases.Alias); ok {
+				// Preserve materialized aliases,
+				// even of non-exported types.
+				t = aliases.Rhs(alias)
+			}
 			w.typ(t, obj.Pkg())
 			break
 		}
@@ -537,20 +540,20 @@ func (p *iexporter) doDecl(obj types.Object) {
 			panic(internalErrorf("%s is not a defined type", t))
 		}
 
-		if typeparams.ForNamed(named).Len() == 0 {
-			w.tag('T')
+		if named.TypeParams().Len() == 0 {
+			w.tag(typeTag)
 		} else {
-			w.tag('U')
+			w.tag(genericTypeTag)
 		}
 		w.pos(obj.Pos())
 
-		if typeparams.ForNamed(named).Len() > 0 {
+		if named.TypeParams().Len() > 0 {
 			// While importing the type parameters, tparamList computes and records
 			// their export name, so that it can be later used when writing the index.
-			w.tparamList(obj.Name(), typeparams.ForNamed(named), obj.Pkg())
+			w.tparamList(obj.Name(), named.TypeParams(), obj.Pkg())
 		}
 
-		underlying := obj.Type().Underlying()
+		underlying := named.Underlying()
 		w.typ(underlying, obj.Pkg())
 
 		if types.IsInterface(t) {
@@ -567,7 +570,7 @@ func (p *iexporter) doDecl(obj types.Object) {
 
 			// Receiver type parameters are type arguments of the receiver type, so
 			// their name must be qualified before exporting recv.
-			if rparams := typeparams.RecvTypeParams(sig); rparams.Len() > 0 {
+			if rparams := sig.RecvTypeParams(); rparams.Len() > 0 {
 				prefix := obj.Name() + "." + m.Name()
 				for i := 0; i < rparams.Len(); i++ {
 					rparam := rparams.At(i)
@@ -741,20 +744,25 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 		}()
 	}
 	switch t := t.(type) {
+	case *aliases.Alias:
+		// TODO(adonovan): support parameterized aliases, following *types.Named.
+		w.startType(aliasType)
+		w.qualifiedType(t.Obj())
+
 	case *types.Named:
-		if targs := typeparams.NamedTypeArgs(t); targs.Len() > 0 {
+		if targs := t.TypeArgs(); targs.Len() > 0 {
 			w.startType(instanceType)
 			// TODO(rfindley): investigate if this position is correct, and if it
 			// matters.
 			w.pos(t.Obj().Pos())
 			w.typeList(targs, pkg)
-			w.typ(typeparams.NamedTypeOrigin(t), pkg)
+			w.typ(t.Origin(), pkg)
 			return
 		}
 		w.startType(definedType)
 		w.qualifiedType(t.Obj())
 
-	case *typeparams.TypeParam:
+	case *types.TypeParam:
 		w.startType(typeParamType)
 		w.qualifiedType(t.Obj())
 
@@ -846,7 +854,7 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 		for i := 0; i < n; i++ {
 			ft := t.EmbeddedType(i)
 			tPkg := pkg
-			if named, _ := ft.(*types.Named); named != nil {
+			if named, _ := aliases.Unalias(ft).(*types.Named); named != nil {
 				w.pos(named.Obj().Pos())
 			} else {
 				w.pos(token.NoPos)
@@ -870,7 +878,7 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 			w.signature(sig)
 		}
 
-	case *typeparams.Union:
+	case *types.Union:
 		w.startType(unionType)
 		nt := t.Len()
 		w.uint64(uint64(nt))
@@ -917,22 +925,26 @@ func (w *exportWriter) objectPath(obj types.Object) {
 	objectPath, err := w.p.objectpathEncoder().For(obj)
 	if err != nil {
 		// Fall back to the empty string, which will cause the importer to create a
-		// new object.
+		// new object, which matches earlier behavior. Creating a new object is
+		// sufficient for many purposes (such as type checking), but causes certain
+		// references algorithms to fail (golang/go#60819). However, we didn't
+		// notice this problem during months of gopls@v0.12.0 testing.
 		//
-		// This is incorrect in shallow mode (golang/go#60819), but matches
-		// the previous behavior. This code is defensive, as it is hard to
-		// prove that the objectpath algorithm will succeed in all cases, and
-		// creating a new object sort of works.
-		// (we didn't notice the bug during months of gopls@v0.12.0 testing)
+		// TODO(golang/go#61674): this workaround is insufficient, as in the case
+		// where the field forwarded from an instantiated type that may not appear
+		// in the export data of the original package:
 		//
-		// However, report a bug so that we can eventually have confidence
-		// that export/import is producing a correct package.
+		//  // package a
+		//  type A[P any] struct{ F P }
 		//
-		// TODO: remove reportf once we have such confidence.
-		objectPath = ""
-		if w.p.reportf != nil {
-			w.p.reportf("unable to encode object %q in package %q: %v", obj.Name(), obj.Pkg().Path(), err)
-		}
+		//  // package b
+		//  type B a.A[int]
+		//
+		// We need to update references algorithms not to depend on this
+		// de-duplication, at which point we may want to simply remove the
+		// workaround here.
+		w.string("")
+		return
 	}
 	w.string(string(objectPath))
 	w.pkg(obj.Pkg())
@@ -946,14 +958,14 @@ func (w *exportWriter) signature(sig *types.Signature) {
 	}
 }
 
-func (w *exportWriter) typeList(ts *typeparams.TypeList, pkg *types.Package) {
+func (w *exportWriter) typeList(ts *types.TypeList, pkg *types.Package) {
 	w.uint64(uint64(ts.Len()))
 	for i := 0; i < ts.Len(); i++ {
 		w.typ(ts.At(i), pkg)
 	}
 }
 
-func (w *exportWriter) tparamList(prefix string, list *typeparams.TypeParamList, pkg *types.Package) {
+func (w *exportWriter) tparamList(prefix string, list *types.TypeParamList, pkg *types.Package) {
 	ll := uint64(list.Len())
 	w.uint64(ll)
 	for i := 0; i < list.Len(); i++ {
@@ -971,7 +983,7 @@ const blankMarker = "$"
 // differs from its actual object name: it is prefixed with a qualifier, and
 // blank type parameter names are disambiguated by their index in the type
 // parameter list.
-func tparamExportName(prefix string, tparam *typeparams.TypeParam) string {
+func tparamExportName(prefix string, tparam *types.TypeParam) string {
 	assert(prefix != "")
 	name := tparam.Obj().Name()
 	if name == "_" {
