@@ -3,7 +3,7 @@ name: "Build Docker Image"
 on:
   push:
     tags:
-      - app/v*.*.*
+      - app/v*
 
 jobs:
   docker:
@@ -25,6 +25,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_IMAGE_NAME }}
+
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -38,7 +45,8 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: tobyxdd/hysteria:latest,tobyxdd/hysteria:v2,tobyxdd/hysteria:${{ steps.get_version.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
