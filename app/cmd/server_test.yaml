@@ -9,6 +9,7 @@ tls:
   cert: some.crt
   key: some.key
   sniGuard: strict
+  clientCA: some_ca.crt
 
 acme:
   domains:
@@ -108,6 +109,7 @@ outbounds:
       bindIPv4: 2.4.6.8
       bindIPv6: 0:0:0:0:0:ffff:0204:0608
       bindDevice: eth233
+      fastOpen: true
   - name: badstuff
     type: socks5
     socks5:
@@ -131,6 +133,7 @@ masquerade:
   proxy:
     url: https://some.site.net
     rewriteHost: true
+    insecure: true
   string:
     content: aint nothin here
     headers:

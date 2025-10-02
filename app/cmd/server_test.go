@@ -29,6 +29,7 @@ func TestServerConfig(t *testing.T) {
 			Cert:     "some.crt",
 			Key:      "some.key",
 			SNIGuard: "strict",
+			ClientCA: "some_ca.crt",
 		},
 		ACME: &serverConfigACME{
 			Domains: []string{
@@ -138,6 +139,7 @@ func TestServerConfig(t *testing.T) {
 					BindIPv4:   "2.4.6.8",
 					BindIPv6:   "0:0:0:0:0:ffff:0204:0608",
 					BindDevice: "eth233",
+					FastOpen:   true,
 				},
 			},
 			{
@@ -170,6 +172,7 @@ func TestServerConfig(t *testing.T) {
 			Proxy: serverConfigMasqueradeProxy{
 				URL:         "https://some.site.net",
 				RewriteHost: true,
+				Insecure:    true,
 			},
 			String: serverConfigMasqueradeString{
 				Content: "aint nothin here",
