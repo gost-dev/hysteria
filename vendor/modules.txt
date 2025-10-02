@@ -7,11 +7,11 @@ github.com/andybalholm/brotli/matchfinder
 ## explicit; go 1.20
 github.com/apernet/go-tproxy
 # github.com/apernet/hysteria/core/v2 v2.0.0-00010101000000-000000000000 => ./core
-## explicit; go 1.22
+## explicit; go 1.23
 # github.com/apernet/hysteria/extras/v2 v2.0.0-00010101000000-000000000000 => ./extras
-## explicit; go 1.22
-# github.com/apernet/quic-go v0.47.1-0.20241004180137-a80d14e2080d
-## explicit; go 1.22
+## explicit; go 1.23
+# github.com/apernet/quic-go v0.54.1-0.20250907230547-eb32f8aec5e2
+## explicit; go 1.23
 github.com/apernet/quic-go
 github.com/apernet/quic-go/congestion
 github.com/apernet/quic-go/http3
@@ -21,7 +21,6 @@ github.com/apernet/quic-go/internal/flowcontrol
 github.com/apernet/quic-go/internal/handshake
 github.com/apernet/quic-go/internal/protocol
 github.com/apernet/quic-go/internal/qerr
-github.com/apernet/quic-go/internal/qtls
 github.com/apernet/quic-go/internal/utils
 github.com/apernet/quic-go/internal/utils/linkedlist
 github.com/apernet/quic-go/internal/utils/ringbuffer
@@ -29,7 +28,7 @@ github.com/apernet/quic-go/internal/utils/tree
 github.com/apernet/quic-go/internal/wire
 github.com/apernet/quic-go/logging
 github.com/apernet/quic-go/quicvarint
-# github.com/apernet/sing-tun v0.2.6-0.20240323130332-b9f6511036ad
+# github.com/apernet/sing-tun v0.2.6-0.20250920121535-299f04629986
 ## explicit; go 1.18
 github.com/apernet/sing-tun
 github.com/apernet/sing-tun/internal/clashtcpip
@@ -38,9 +37,6 @@ github.com/apernet/sing-tun/internal/winipcfg
 github.com/apernet/sing-tun/internal/winsys
 github.com/apernet/sing-tun/internal/wintun
 github.com/apernet/sing-tun/internal/wintun/memmod
-# github.com/babolivier/go-doh-client v0.0.0-20201028162107-a76cff4cb8b6
-## explicit; go 1.15
-github.com/babolivier/go-doh-client
 # github.com/caddyserver/certmagic v0.17.2
 ## explicit; go 1.18
 github.com/caddyserver/certmagic
@@ -86,6 +82,12 @@ github.com/cloudflare/circl/sign/schemes
 github.com/cloudflare/circl/simd/keccakf1600
 github.com/cloudflare/circl/xof
 github.com/cloudflare/circl/xof/k12
+# github.com/database64128/netx-go v0.0.0-20240905055117-62795b8b054a
+## explicit; go 1.21.0
+github.com/database64128/netx-go
+# github.com/database64128/tfo-go/v2 v2.2.2
+## explicit; go 1.21.0
+github.com/database64128/tfo-go/v2
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -96,17 +98,9 @@ github.com/fsnotify/fsnotify
 ## explicit; go 1.12
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
-## explicit; go 1.13
-github.com/go-task/slim-sprig
-# github.com/golang/protobuf v1.5.4
-## explicit; go 1.17
 # github.com/google/go-querystring v1.1.0
 ## explicit; go 1.10
 github.com/google/go-querystring/query
-# github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
-## explicit; go 1.14
-github.com/google/pprof/profile
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
@@ -186,24 +180,6 @@ github.com/miekg/dns
 # github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/onsi/ginkgo/v2 v2.9.5
-## explicit; go 1.18
-github.com/onsi/ginkgo/v2/config
-github.com/onsi/ginkgo/v2/formatter
-github.com/onsi/ginkgo/v2/ginkgo
-github.com/onsi/ginkgo/v2/ginkgo/build
-github.com/onsi/ginkgo/v2/ginkgo/command
-github.com/onsi/ginkgo/v2/ginkgo/generators
-github.com/onsi/ginkgo/v2/ginkgo/internal
-github.com/onsi/ginkgo/v2/ginkgo/labels
-github.com/onsi/ginkgo/v2/ginkgo/outline
-github.com/onsi/ginkgo/v2/ginkgo/run
-github.com/onsi/ginkgo/v2/ginkgo/unfocus
-github.com/onsi/ginkgo/v2/ginkgo/watch
-github.com/onsi/ginkgo/v2/internal/interrupt_handler
-github.com/onsi/ginkgo/v2/internal/parallel_support
-github.com/onsi/ginkgo/v2/reporters
-github.com/onsi/ginkgo/v2/types
 # github.com/patrickmn/go-cache v2.1.0+incompatible
 ## explicit
 github.com/patrickmn/go-cache
@@ -321,8 +297,8 @@ go.uber.org/atomic
 ## explicit; go 1.18
 go.uber.org/goleak
 go.uber.org/goleak/internal/stack
-# go.uber.org/mock v0.4.0
-## explicit; go 1.20
+# go.uber.org/mock v0.5.0
+## explicit; go 1.22
 go.uber.org/mock/mockgen
 go.uber.org/mock/mockgen/model
 # go.uber.org/multierr v1.11.0
@@ -356,8 +332,7 @@ golang.org/x/crypto/sha3
 # golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
 ## explicit; go 1.20
 golang.org/x/exp/constraints
-golang.org/x/exp/rand
-# golang.org/x/mod v0.17.0
+# golang.org/x/mod v0.18.0
 ## explicit; go 1.18
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
@@ -366,6 +341,7 @@ golang.org/x/mod/semver
 # golang.org/x/net v0.28.0
 ## explicit; go 1.18
 golang.org/x/net/bpf
+golang.org/x/net/dns/dnsmessage
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
@@ -381,7 +357,7 @@ golang.org/x/oauth2/internal
 # golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.23.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
@@ -397,10 +373,9 @@ golang.org/x/text/unicode/norm
 # golang.org/x/time v0.5.0
 ## explicit; go 1.18
 golang.org/x/time/rate
-# golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
+# golang.org/x/tools v0.22.0
 ## explicit; go 1.19
 golang.org/x/tools/go/ast/astutil
-golang.org/x/tools/go/ast/inspector
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/go/packages

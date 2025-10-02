@@ -517,7 +517,11 @@ func (w *systemUDPPacketWriter4) WritePacket(buffer *buf.Buffer, destination M.S
 		ipHdr.ResetChecksum()
 	}
 	if PacketOffset > 0 {
-		newPacket.ExtendHeader(PacketOffset)[3] = syscall.AF_INET
+		af := newPacket.ExtendHeader(PacketOffset)
+		af[0] = 0
+		af[1] = 0
+		af[2] = 0
+		af[3] = syscall.AF_INET
 	} else {
 		newPacket.Advance(-w.frontHeadroom)
 	}
@@ -553,7 +557,11 @@ func (w *systemUDPPacketWriter6) WritePacket(buffer *buf.Buffer, destination M.S
 		udpHdr.OffloadChecksum()
 	}
 	if PacketOffset > 0 {
-		newPacket.ExtendHeader(PacketOffset)[3] = syscall.AF_INET6
+		af := newPacket.ExtendHeader(PacketOffset)
+		af[0] = 0
+		af[1] = 0
+		af[2] = 0
+		af[3] = syscall.AF_INET6
 	} else {
 		newPacket.Advance(-w.frontHeadroom)
 	}
