@@ -86,62 +86,6 @@ index 13426b4..e6934bf 100644
  jobs:
    build:
      uses: ./.github/workflows/build-common.yml
-diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
-index 09ebeef..eeb048d 100644
---- a/.github/workflows/release.yml
-+++ b/.github/workflows/release.yml
-@@ -1,14 +1,17 @@
- name: "Build release"
- 
- on:
-   push:
-     tags:
--      - app/v*.*.*
-+      # - app/v*.*.*
-+      - app/v*
- 
- jobs:
-   build:
-+    permissions:
-+      contents: write
-     uses: ./.github/workflows/build-common.yml
- 
-   publish:
-     name: Publish
-     needs: build
-@@ -35,19 +38,19 @@ jobs:
-       - name: Upload GitHub
-         uses: softprops/action-gh-release@v3
-         with:
-           files: build/*
- 
--      - name: Upload CF bucket
--        uses: shallwefootball/upload-s3-action@v1.3.3
--        with:
--          aws_key_id: ${{ secrets.CF_KEY_ID }}
--          aws_secret_access_key: ${{ secrets.CF_KEY }}
--          aws_bucket: "hydownload"
--          endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
--          source_dir: "build"
--          destination_dir: "app/${{ steps.get_version.outputs.version }}"
-+      # - name: Upload CF bucket
-+      #   uses: shallwefootball/upload-s3-action@v1.3.3
-+      #   with:
-+      #     aws_key_id: ${{ secrets.CF_KEY_ID }}
-+      #     aws_secret_access_key: ${{ secrets.CF_KEY }}
-+      #     aws_bucket: "hydownload"
-+      #     endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
-+      #     source_dir: "build"
-+      #     destination_dir: "app/${{ steps.get_version.outputs.version }}"
- 
--      - name: Publish to API
--        run: |
--          export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
--          uv run python hyperbole.py publish
-+      # - name: Publish to API
-+      #   run: |
-+      #     export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
-+      #     uv run python hyperbole.py publish
 diff --git a/.github/workflows/scripts.yml b/.github/workflows/scripts.yml
 index a01f3ae..ccb95e6 100644
 --- a/.github/workflows/scripts.yml
@@ -192,3 +136,57 @@ index 15ca6bc..d339a1c 100644
    test:
      name: Test
      runs-on: ubuntu-latest
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index 09ebeef..c58ecdd 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -1,11 +1,15 @@
+ name: "Build release"
+ 
+ on:
+   push:
+     tags:
+-      - app/v*.*.*
++      # - app/v*.*.*
++      - app/v*
++
++permissions:
++  contents: write
+ 
+ jobs:
+   build:
+     uses: ./.github/workflows/build-common.yml
+ 
+@@ -35,19 +39,19 @@ jobs:
+       - name: Upload GitHub
+         uses: softprops/action-gh-release@v3
+         with:
+           files: build/*
+ 
+-      - name: Upload CF bucket
+-        uses: shallwefootball/upload-s3-action@v1.3.3
+-        with:
+-          aws_key_id: ${{ secrets.CF_KEY_ID }}
+-          aws_secret_access_key: ${{ secrets.CF_KEY }}
+-          aws_bucket: "hydownload"
+-          endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
+-          source_dir: "build"
+-          destination_dir: "app/${{ steps.get_version.outputs.version }}"
++      # - name: Upload CF bucket
++      #   uses: shallwefootball/upload-s3-action@v1.3.3
++      #   with:
++      #     aws_key_id: ${{ secrets.CF_KEY_ID }}
++      #     aws_secret_access_key: ${{ secrets.CF_KEY }}
++      #     aws_bucket: "hydownload"
++      #     endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
++      #     source_dir: "build"
++      #     destination_dir: "app/${{ steps.get_version.outputs.version }}"
+ 
+-      - name: Publish to API
+-        run: |
+-          export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
+-          uv run python hyperbole.py publish
++      # - name: Publish to API
++      #   run: |
++      #     export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
++      #     uv run python hyperbole.py publish
