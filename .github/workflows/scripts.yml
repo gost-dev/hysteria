@@ -1,11 +1,12 @@
 name: "Publish scripts"
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - scripts/**
+  # push:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - scripts/**
+  workflow_dispatch:
 
 jobs:
   publish:

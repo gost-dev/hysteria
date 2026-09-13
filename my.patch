@@ -1,0 +1,194 @@
+diff --git a/.github/workflows/autotag.yaml b/.github/workflows/autotag.yaml
+index dbec59e..3766bba 100644
+--- a/.github/workflows/autotag.yaml
++++ b/.github/workflows/autotag.yaml
+@@ -1,11 +1,12 @@
+ name: "Create release tags for nested modules"
+ 
+ on:
+-  push:
+-    tags:
+-      - app/v*.*.*
++  # push:
++  #   tags:
++  #     - app/v*.*.*
++  workflow_dispatch:
+ 
+ permissions:
+   contents: write
+ 
+ jobs:
+diff --git a/.github/workflows/docker.yml b/.github/workflows/docker.yml
+index fea4a2a..9e6370e 100644
+--- a/.github/workflows/docker.yml
++++ b/.github/workflows/docker.yml
+@@ -1,11 +1,12 @@
+ name: "Build Docker Image"
+ 
+ on:
+   push:
+     tags:
+-      - app/v*.*.*
++      # - app/v*.*.*
++      - app/v*
+ 
+ jobs:
+   docker:
+     runs-on: ubuntu-latest
+     env:
+@@ -23,10 +24,17 @@ jobs:
+         uses: docker/setup-qemu-action@v4
+ 
+       - name: Set up Docker Buildx
+         uses: docker/setup-buildx-action@v4
+ 
++      - name: Docker meta
++        id: meta
++        uses: docker/metadata-action@v6
++        with:
++          images: |
++            ${{ secrets.DOCKER_IMAGE_NAME }}
++
+       - name: Login to DockerHub
+         uses: docker/login-action@v4
+         with:
+           username: ${{ secrets.DOCKERHUB_USERNAME }}
+           password: ${{ secrets.DOCKERHUB_TOKEN }}
+@@ -36,9 +44,11 @@ jobs:
+         uses: docker/build-push-action@v7
+         with:
+           context: .
+           push: true
+           platforms: linux/amd64,linux/arm64
+-          tags: tobyxdd/hysteria:latest,tobyxdd/hysteria:v2,tobyxdd/hysteria:${{ steps.get_version.outputs.version }}
++          # tags: tobyxdd/hysteria:latest,tobyxdd/hysteria:v2,tobyxdd/hysteria:${{ steps.get_version.outputs.version }}
++          tags: ${{ steps.meta.outputs.tags }}
++          labels: ${{ steps.meta.outputs.labels }}
+ 
+       - name: Image digest
+         run: echo ${{ steps.docker_build.outputs.digest }}
+diff --git a/.github/workflows/master.yml b/.github/workflows/master.yml
+index 13426b4..e6934bf 100644
+--- a/.github/workflows/master.yml
++++ b/.github/workflows/master.yml
+@@ -1,10 +1,11 @@
+ name: "Build master branch"
+ 
+ on:
+-  push:
+-    branches:
+-      - master
++  # push:
++  #   branches:
++  #     - master
++  workflow_dispatch:
+ 
+ jobs:
+   build:
+     uses: ./.github/workflows/build-common.yml
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index 09ebeef..eeb048d 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -1,14 +1,17 @@
+ name: "Build release"
+ 
+ on:
+   push:
+     tags:
+-      - app/v*.*.*
++      # - app/v*.*.*
++      - app/v*
+ 
+ jobs:
+   build:
++    permissions:
++      contents: write
+     uses: ./.github/workflows/build-common.yml
+ 
+   publish:
+     name: Publish
+     needs: build
+@@ -35,19 +38,19 @@ jobs:
+       - name: Upload GitHub
+         uses: softprops/action-gh-release@v3
+         with:
+           files: build/*
+ 
+-      - name: Upload CF bucket
+-        uses: shallwefootball/upload-s3-action@v1.3.3
+-        with:
+-          aws_key_id: ${{ secrets.CF_KEY_ID }}
+-          aws_secret_access_key: ${{ secrets.CF_KEY }}
+-          aws_bucket: "hydownload"
+-          endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
+-          source_dir: "build"
+-          destination_dir: "app/${{ steps.get_version.outputs.version }}"
++      # - name: Upload CF bucket
++      #   uses: shallwefootball/upload-s3-action@v1.3.3
++      #   with:
++      #     aws_key_id: ${{ secrets.CF_KEY_ID }}
++      #     aws_secret_access_key: ${{ secrets.CF_KEY }}
++      #     aws_bucket: "hydownload"
++      #     endpoint: "https://bea223c61d5a41250d127bd67f51dfec.r2.cloudflarestorage.com/"
++      #     source_dir: "build"
++      #     destination_dir: "app/${{ steps.get_version.outputs.version }}"
+ 
+-      - name: Publish to API
+-        run: |
+-          export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
+-          uv run python hyperbole.py publish
++      # - name: Publish to API
++      #   run: |
++      #     export HY_API_POST_KEY=${{ secrets.HY2_API_POST_KEY }}
++      #     uv run python hyperbole.py publish
+diff --git a/.github/workflows/scripts.yml b/.github/workflows/scripts.yml
+index a01f3ae..ccb95e6 100644
+--- a/.github/workflows/scripts.yml
++++ b/.github/workflows/scripts.yml
+@@ -1,13 +1,14 @@
+ name: "Publish scripts"
+ 
+ on:
+-  push:
+-    branches:
+-      - master
+-    paths:
+-      - scripts/**
++  # push:
++  #   branches:
++  #     - master
++  #   paths:
++  #     - scripts/**
++  workflow_dispatch:
+ 
+ jobs:
+   publish:
+     runs-on: ubuntu-latest
+     permissions:
+diff --git a/.github/workflows/test.yml b/.github/workflows/test.yml
+index 15ca6bc..d339a1c 100644
+--- a/.github/workflows/test.yml
++++ b/.github/workflows/test.yml
+@@ -1,14 +1,15 @@
+ name: "Tests"
+ 
+ on:
+-  push:
+-    branches:
+-      - master
+-  pull_request:
+-    branches:
+-      - master
++  # push:
++  #   branches:
++  #     - master
++  # pull_request:
++  #   branches:
++  #     - master
++  workflow_dispatch:
+ 
+ jobs:
+   test:
+     name: Test
+     runs-on: ubuntu-latest
