@@ -6,10 +6,11 @@ on:
       # - app/v*.*.*
       - app/v*
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    permissions:
-      contents: write
     uses: ./.github/workflows/build-common.yml
 
   publish:
